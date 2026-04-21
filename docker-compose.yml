@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  api-gateway:
+    build: .
+    container_name: accesorios-api-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - INVENTORY_SERVICE_URL=http://inventory-service:8081
+      - PAYMENT_SERVICE_URL=http://payment-service:8082
+    networks:
+      - accesorios-network
+
+# Usar red externa que ya existe de la base de datos
+networks:
+  accesorios-network:
+    external: true
+    name: accesorios-network
