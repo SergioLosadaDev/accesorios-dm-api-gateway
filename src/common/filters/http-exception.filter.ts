@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
+import { UpstreamResponseNormalizer } from '../utils/upstream-response.normalizer';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -20,8 +21,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const traceId =
-      (request.headers['x-trace-id'] as string) ?? randomUUID();
+    const traceId = (request.headers['x-trace-id'] as string) ?? randomUUID();
+
+    // Normalize Spring Boot default error responses proxied from upstream
+    if (exception instanceof HttpException) {
+      const body = exception.getResponse();
+      if (UpstreamResponseNormalizer.isSpringDefaultError(body)) {
+        const normalized = UpstreamResponseNormalizer.normalize(
+          body,
+          request.url,
+          traceId,
+        );
+        response.status(normalized.status).json(normalized);
+        return;
+      }
+    }
 
     const errorCode = this.resolveErrorCode(status, exception);
     const message = this.resolveMessage(status, exception);
@@ -56,7 +70,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const body = exception.getResponse();
       if (typeof body === 'object' && body !== null && 'error' in body) {
-        return (body as Record<string, string>).error;
+        const raw = (body as Record<string, string>).error;
+        // Already in UPPER_SNAKE_CASE (ADR-009 format) → use as-is
+        if (raw && raw === raw.toUpperCase()) return raw;
       }
     }
 
