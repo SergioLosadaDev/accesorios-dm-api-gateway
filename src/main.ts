@@ -1,12 +1,24 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      frameguard: { action: 'deny' },
+      contentSecurityPolicy: false,
+    }),
+  );
+
+  // helmet 7+ removed xssFilter; set it explicitly for legacy browser support
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    next();
+  });
 
   app.setGlobalPrefix('api/v1');
 

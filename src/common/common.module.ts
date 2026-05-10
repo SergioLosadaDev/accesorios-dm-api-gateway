@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { CorsOriginMiddleware } from './middleware/cors-origin.middleware';
 
 @Module({
   providers: [
@@ -11,4 +12,8 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
   ],
   exports: [],
 })
-export class CommonModule {}
+export class CommonModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CorsOriginMiddleware).forRoutes('*');
+  }
+}
