@@ -23,28 +23,25 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const start = Date.now();
 
-    this.logger.log(
-      JSON.stringify({
-        event: 'request',
-        traceId,
-        method: req.method,
-        path: req.url,
-        ip: req.ip,
-      }),
-    );
+    this.logger.log({
+      event: 'request',
+      traceId,
+      method: req.method,
+      path: req.url,
+      ip: req.ip,
+      userAgent: req.headers['user-agent'] ?? '',
+    });
 
     return next.handle().pipe(
       tap(() => {
-        this.logger.log(
-          JSON.stringify({
-            event: 'response',
-            traceId,
-            method: req.method,
-            path: req.url,
-            statusCode: res.statusCode,
-            responseTimeMs: Date.now() - start,
-          }),
-        );
+        this.logger.log({
+          event: 'response',
+          traceId,
+          method: req.method,
+          path: req.url,
+          statusCode: res.statusCode,
+          responseTimeMs: Date.now() - start,
+        });
       }),
     );
   }

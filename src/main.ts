@@ -3,9 +3,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { JsonLoggerService } from './common/logger/json-logger.service';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new JsonLoggerService();
+  const app = await NestFactory.create(AppModule, { logger });
 
   app.use(
     helmet({
@@ -30,6 +33,8 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? ['http://localhost:4200'];
 
   app.enableCors({
@@ -41,6 +46,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
+  logger.log({ event: 'startup', message: `Gateway running on port ${port}` }, 'Bootstrap');
 }
 
 bootstrap();
