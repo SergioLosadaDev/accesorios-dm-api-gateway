@@ -1,16 +1,15 @@
-# Etapa 1: build
-FROM maven:3.9-eclipse-temurin-17 AS builder
-
-WORKDIR /build
-COPY . .
-RUN mvn clean package -DskipTests
-
-# Etapa 2: runtime
-FROM eclipse-temurin:17-jdk
-
+FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=builder /build/target/*.jar app.jar
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-EXPOSE 8080
-
-ENTRYPOINT ["java","-jar","app.jar"]
+FROM node:20-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder /app/dist ./dist
+EXPOSE 3000
+CMD ["node", "dist/main"]
