@@ -40,6 +40,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const errorCode = this.resolveErrorCode(status, exception);
     const message = this.resolveMessage(status, exception);
 
+    if (status === HttpStatus.TOO_MANY_REQUESTS && exception instanceof HttpException) {
+      const body = exception.getResponse() as Record<string, unknown>;
+      if (typeof body?.['retryAfter'] === 'number') {
+        response.setHeader('Retry-After', String(body['retryAfter']));
+      }
+    }
+
     response.status(status).json({
       status,
       error: errorCode,
