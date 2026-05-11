@@ -13,16 +13,16 @@ export class ProxyModule implements NestModule {
     consumer
       .apply(SecurityProxyMiddleware)
       .forRoutes(
-        { path: '/api/v1/auth*', method: RequestMethod.ALL },
-        { path: '/api/v1/users*', method: RequestMethod.ALL },
-        { path: '/api/v1/roles*', method: RequestMethod.ALL },
+        { path: '/auth*', method: RequestMethod.ALL },
+        { path: '/users*', method: RequestMethod.ALL },
+        { path: '/roles*', method: RequestMethod.ALL },
       );
 
     consumer
       .apply(InventoryProxyMiddleware)
       .forRoutes(
-        { path: '/api/v1/catalog*', method: RequestMethod.ALL },
-        { path: '/api/v1/inventory*', method: RequestMethod.ALL },
+        { path: '/catalog*', method: RequestMethod.ALL },
+        { path: '/inventory*', method: RequestMethod.ALL },
       );
   }
 }
