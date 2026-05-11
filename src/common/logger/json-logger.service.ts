@@ -60,7 +60,7 @@ export class JsonLoggerService implements LoggerService {
     };
     if (context) base.context = context;
 
-    const entry =
+    const entry: Record<string, unknown> =
       typeof message === 'object' && message !== null
         ? { ...base, ...(message as Record<string, unknown>) }
         : { ...base, message };
