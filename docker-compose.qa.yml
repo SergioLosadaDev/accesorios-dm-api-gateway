@@ -1,0 +1,19 @@
+# Override QA — accesorios-dm-api-gateway
+#
+# Uso:
+#   cp .env.qa.example .env.qa
+#   # completar .env.qa con credenciales de QA
+#   docker compose -f docker-compose.yml -f docker-compose.qa.yml --env-file .env.qa up -d
+
+services:
+  api-gateway:
+    environment:
+      NODE_ENV: production
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: "0.5"
+        reservations:
+          memory: 128m

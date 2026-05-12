@@ -1,0 +1,24 @@
+# Override Producción — accesorios-dm-api-gateway
+#
+# Uso:
+#   # IMAGE_TAG y credenciales vienen del pipeline CI/CD o secrets del servidor
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# IMPORTANTE: en producción NUNCA se construye desde código fuente.
+# La imagen debe estar publicada en el registry antes de ejecutar este comando.
+
+services:
+  api-gateway:
+    build: null
+    image: ghcr.io/sergiolosadadev/accesorios-dm-api-gateway:${IMAGE_TAG:?IMAGE_TAG es requerido en produccion}
+    environment:
+      NODE_ENV: production
+    ports: []
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+          cpus: "0.75"
+        reservations:
+          memory: 192m

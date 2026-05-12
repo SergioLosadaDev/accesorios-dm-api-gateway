@@ -4,9 +4,12 @@ node_modules/
 # Build output
 dist/
 
-# Environment
+# Environment — solo los .example se versionan
 .env
 .env.local
+.env.dev
+.env.qa
+.env.prod
 .env.*.local
 
 # Logs
