@@ -1,0 +1,25 @@
+services:
+  api-gateway:
+    build: .
+    container_name: accesorios-dm-gateway-qa
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - INVENTORY_HOST=host.docker.internal
+      - INVENTORY_PORT=8081
+      - SECURITY_HOST=host.docker.internal
+      - SECURITY_PORT=8889
+      - PAYMENT_HOST=host.docker.internal
+      - PAYMENT_PORT=9001
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    networks:
+      - accesorios-dm-net-qa
+
+networks:
+  accesorios-dm-net-qa:
+    external: true
+    name: accesorios-dm-database_accesorios-network-qa
