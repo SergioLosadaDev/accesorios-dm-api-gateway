@@ -1,26 +1,6 @@
-# Dependencies
 node_modules/
-
-# Build output
-dist/
-
-# Environment — solo los .example se versionan
 .env
-.env.local
-.env.dev
-.env.qa
-.env.prod
-.env.*.local
-
-# Logs
 *.log
-logs/
-
-# IDE
-.idea/
-.vscode/
-*.iml
-
-# OS
 .DS_Store
-Thumbs.db
+dist/
+build/
