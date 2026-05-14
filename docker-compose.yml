@@ -1,34 +1,25 @@
-# API Gateway — accesorios-dm-api-gateway
-#
-# Uso develop (standalone):
-#   cp .env.dev.example .env
-#   docker compose up -d
-#
-# Uso junto a otros servicios (red compartida automática):
-#   Ambos servicios deben declarar la misma red accesorios-dm-net-{ENVIRONMENT}
-#   y Docker los conecta sin orquestador central.
-
 services:
   api-gateway:
-    build:
-      context: .
-      target: runtime
-    image: ghcr.io/sergiolosadadev/accesorios-dm-api-gateway:${IMAGE_TAG:-dev}
-    container_name: accesorios-dm-gateway-${ENVIRONMENT:-dev}
+    build: .
+    container_name: accesorios-dm-gateway-dev
     restart: unless-stopped
-    env_file: .env
     ports:
-      - "${GATEWAY_PORT:-3000}:3000"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/v1/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - INVENTORY_HOST=host.docker.internal
+      - INVENTORY_PORT=8082
+      - SECURITY_HOST=host.docker.internal
+      - SECURITY_PORT=8890
+      - PAYMENT_HOST=host.docker.internal
+      - PAYMENT_PORT=9002
+    volumes:
+      - ./:/app
+      - /app/node_modules
     networks:
       - accesorios-dm-net
 
 networks:
   accesorios-dm-net:
-    name: accesorios-dm-net-${ENVIRONMENT:-dev}
-    driver: bridge
+    external: true
+    name: accesorios-dm-database_accesorios-network-dev
