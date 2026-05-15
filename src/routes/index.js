@@ -54,23 +54,35 @@ const paymentProxy = createProxyMiddleware({
   pathRewrite: { '^/api/v1/payment': '/api/v1' }
 });
 
-// Proxy para promociones
-router.use('/promociones', createProxyMiddleware({
+// Proxy para promociones con manejo de body
+const promocionesProxy = createProxyMiddleware({
     target: `http://${config.services.inventory.host}:${config.services.inventory.port}`,
     changeOrigin: true,
     pathRewrite: {
         '^/api/v1/promociones': '/api/v1/promociones'
     },
+    onProxyReq: (proxyReq, req, res) => {
+        console.log(`[PROXY] ${req.method} ${req.url} -> promociones`);
+        
+        // Manejar el body para POST y PUT
+        if (req.body && Object.keys(req.body).length) {
+            const bodyData = JSON.stringify(req.body);
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+            proxyReq.write(bodyData);
+        }
+    },
     onError: (err, req, res) => {
         console.error('Error en promociones:', err.message);
         res.status(503).json({ error: 'Promociones Service no disponible' });
     }
-}));
+});
 
 // Aplicar proxies
 router.use('/inventory', inventoryProxy);
 router.use('/security', securityProxy);
 router.use('/payment', paymentProxy);
+router.use('/promociones', promocionesProxy);
 
 // Health checks directos
 router.get('/health/inventory', async (req, res) => {
