@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const config = require('./config');
+const apiRoutes = require('./routes');
 
 dotenv.config();
 
@@ -26,78 +26,33 @@ app.get('/api/v1/gateway/health', (req, res) => {
     status: 'UP',
     service: 'api-gateway',
     version: '1.0.0',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    services: {
+      inventory: `http://${config.services.inventory.host}:${config.services.inventory.port}`,
+      security: `http://${config.services.security.host}:${config.services.security.port}`,
+      payment: `http://${config.services.payment.host}:${config.services.payment.port}`
+    }
   });
 });
 
-// Rutas de los microservicios
-// Inventory Service
-app.use('/api/v1/inventory', createProxyMiddleware({
-  target: `http://${config.services.inventory.host}:${config.services.inventory.port}`,
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api/v1/inventory': '/api/v1'
-  },
-  onError: (err, req, res) => {
-    console.error('Error en Inventory Service:', err.message);
-    res.status(503).json({ error: 'Inventory Service no disponible' });
-  }
-}));
-
-// Security Service
-app.use('/api/v1/security', createProxyMiddleware({
-  target: `http://${config.services.security.host}:${config.services.security.port}`,
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api/v1/security': '/api/v1'
-  },
-  onError: (err, req, res) => {
-    console.error('Error en Security Service:', err.message);
-    res.status(503).json({ error: 'Security Service no disponible' });
-  }
-}));
-
-// Payment Service
-app.use('/api/v1/payment', createProxyMiddleware({
-  target: `http://${config.services.payment.host}:${config.services.payment.port}`,
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api/v1/payment': '/api/v1'
-  },
-  onError: (err, req, res) => {
-    console.error('Error en Payment Service:', err.message);
-    res.status(503).json({ error: 'Payment Service no disponible' });
-  }
-}));
-
-// Ruta directa a health de cada microservicio (sin prefijo)
-app.use('/api/v1/health/inventory', createProxyMiddleware({
-  target: `http://${config.services.inventory.host}:${config.services.inventory.port}/api/v1/health`,
-  changeOrigin: true,
-  onError: (err, req, res) => {
-    res.status(503).json({ error: 'Inventory Service no disponible' });
-  }
-}));
-
-app.use('/api/v1/health/security', createProxyMiddleware({
-  target: `http://${config.services.security.host}:${config.services.security.port}/api/v1/health`,
-  changeOrigin: true,
-  onError: (err, req, res) => {
-    res.status(503).json({ error: 'Security Service no disponible' });
-  }
-}));
-
-app.use('/api/v1/health/payment', createProxyMiddleware({
-  target: `http://${config.services.payment.host}:${config.services.payment.port}/api/v1/health`,
-  changeOrigin: true,
-  onError: (err, req, res) => {
-    res.status(503).json({ error: 'Payment Service no disponible' });
-  }
-}));
+// Rutas de la API
+app.use('/api/v1', apiRoutes);
 
 // Manejo de rutas no encontradas
 app.use('*', (req, res) => {
-  res.status(404).json({ error: `Ruta no encontrada: ${req.originalUrl}` });
+  res.status(404).json({ 
+    error: `Ruta no encontrada: ${req.originalUrl}`,
+    available_routes: [
+      '/api/v1/gateway/health',
+      '/api/v1/health/all',
+      '/api/v1/health/inventory',
+      '/api/v1/health/security',
+      '/api/v1/health/payment',
+      '/api/v1/inventory/*',
+      '/api/v1/security/*',
+      '/api/v1/payment/*'
+    ]
+  });
 });
 
 // Manejo de errores global
@@ -108,7 +63,14 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
-  console.log(`Inventory Service: http://${config.services.inventory.host}:${config.services.inventory.port}`);
-  console.log(`Security Service: http://${config.services.security.host}:${config.services.security.port}`);
-  console.log(`Payment Service: http://${config.services.payment.host}:${config.services.payment.port}`);
+  console.log('\n--- Servicios configurados ---');
+  console.log(`Inventory: http://${config.services.inventory.host}:${config.services.inventory.port}`);
+  console.log(`Security:  http://${config.services.security.host}:${config.services.security.port}`);
+  console.log(`Payment:   http://${config.services.payment.host}:${config.services.payment.port}`);
+  console.log('\n--- Endpoints disponibles ---');
+  console.log(`Gateway Health: http://localhost:${PORT}/api/v1/gateway/health`);
+  console.log(`All Services Health: http://localhost:${PORT}/api/v1/health/all`);
+  console.log(`Inventory: http://localhost:${PORT}/api/v1/inventory/...`);
+  console.log(`Security:  http://localhost:${PORT}/api/v1/security/...`);
+  console.log(`Payment:   http://localhost:${PORT}/api/v1/payment/...`);
 });
