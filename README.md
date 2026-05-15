@@ -195,8 +195,6 @@ docker-compose logs -f
 |POST	|/api/v1/inventory/productos	|Crear nuevo producto|
 |PUT	|/api/v1/inventory/productos/{id}	|Actualizar producto|
 |DELETE	|/api/v1/inventory/productos/{id}	|Eliminar producto|
-|GET	|/api/v1/inventory/inventario	|Ver inventario|
-|PUT	|/api/v1/inventory/inventario/{id}/stock	|Actualizar stock|
 
 
 ### 🔹 Security Service
