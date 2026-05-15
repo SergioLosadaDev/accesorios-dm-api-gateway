@@ -54,6 +54,19 @@ const paymentProxy = createProxyMiddleware({
   pathRewrite: { '^/api/v1/payment': '/api/v1' }
 });
 
+// Proxy para promociones
+router.use('/promociones', createProxyMiddleware({
+    target: `http://${config.services.inventory.host}:${config.services.inventory.port}`,
+    changeOrigin: true,
+    pathRewrite: {
+        '^/api/v1/promociones': '/api/v1/promociones'
+    },
+    onError: (err, req, res) => {
+        console.error('Error en promociones:', err.message);
+        res.status(503).json({ error: 'Promociones Service no disponible' });
+    }
+}));
+
 // Aplicar proxies
 router.use('/inventory', inventoryProxy);
 router.use('/security', securityProxy);
