@@ -22,6 +22,14 @@ const proxyOptions = {
   onProxyReq: (proxyReq, req, res) => {
     console.log(`[Proxy] ${req.method} ${req.url}`);
 
+    const contentType = req.headers['content-type'];
+
+    // NO tocar multipart/form-data
+    if (contentType && contentType.includes('multipart/form-data')) {
+      return;
+    }
+
+    // Manejar solo JSON
     if (req.body && Object.keys(req.body).length) {
       const bodyData = JSON.stringify(req.body);
 
@@ -78,11 +86,18 @@ const promocionesProxy = createProxyMiddleware({
     }
 });
 
+// Proxy para uploads de imágenes
+const uploadsProxy = createProxyMiddleware({
+  target: `http://${config.services.inventory.host}:${config.services.inventory.port}`,
+  changeOrigin: true
+});
+
 // Aplicar proxies
 router.use('/inventory', inventoryProxy);
 router.use('/security', securityProxy);
 router.use('/payment', paymentProxy);
 router.use('/promociones', promocionesProxy);
+router.use('/uploads', uploadsProxy);
 
 // Health checks directos
 router.get('/health/inventory', async (req, res) => {
