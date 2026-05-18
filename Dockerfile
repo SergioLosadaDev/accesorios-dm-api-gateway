@@ -2,6 +2,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache curl
+
 # Copiar archivos de dependencias
 COPY package*.json ./
 
