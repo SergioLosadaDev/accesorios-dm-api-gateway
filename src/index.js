@@ -19,8 +19,10 @@ const PORT = config.port;
 
 // ============ MIDDLEWARES GLOBALES ============
 
-// Seguridad - Helmet
-app.use(helmet());
+// Seguridad - Helmet (configurado para permitir CORS en imágenes)
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // Compresión GZIP
 app.use(compression());
